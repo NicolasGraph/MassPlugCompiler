@@ -17,59 +17,53 @@
  * Requires PHP 5.2.0
  */
 
-while(1) {
+while (1) {
+    if ($argc <= 1) {
+        echo "Source directory:\n";
+        $handle = fopen('php://stdin', 'r');
+        $path = trim(fgets($handle));
+    } else {
+        $path = $argv[1];
+    }
 
-	if($argc <= 1) {
-		echo "Source directory:\n";
-		$handle = fopen('php://stdin', 'r');
-		$path = trim(fgets($handle));
-	}
+    if (empty($path)) {
+        $path = dirname(__FILE__);
+    }
 
-	else {
-		$path = $argv[1];
-	}
+    if (!file_exists($path) ||
+        !is_dir($path) ||
+        !is_readable($path)
+    ) {
+        echo "Is not valid directory\n";
+        exit;
+    }
 
-	if(empty($path)) {
-		$path = dirname(__FILE__);
-	}
-	
-	if(
-		!file_exists($path) || 
-		!is_dir($path) || 
-		!is_readable($path)
-	) {
-		echo "Is not valid directory\n";
-		exit;
-	}
-	
-	$rundir = dirname(__FILE__);
+    $rundir = dirname(__FILE__);
 
-	include_once $rundir . '/rah_plugcompile.php';
-	
-	$cache = $rundir . '/packages';
-	
-	if(!empty($argv[2])) {
-		$cache = $argv[2];
-	}
-	
-	elseif(!file_exists($cache)) {
-		mkdir($cache);
-	}
+    include_once $rundir . '/rah_plugcompile.php';
 
-	rah_plugcompile::instance()
-		->set('cache', $cache);
+    $cache = $rundir . '/packages';
 
-	echo rah_plugcompile::instance()
-		->set('source', $path)
-		->package()
-		->get();
-	
-	rah_plugcompile::instance()
-		->write();
+    if (!empty($argv[2])) {
+        $cache = $argv[2];
+    } elseif (!file_exists($cache)) {
+        mkdir($cache);
+    }
 
-	if ($argc > 1) {
-		exit;
-	}
+    rah_plugcompile::instance()
+        ->set('cache', $cache);
+
+    echo rah_plugcompile::instance()
+        ->set('source', $path)
+        ->package()
+        ->get();
+
+    rah_plugcompile::instance()
+        ->write();
+
+    if ($argc > 1) {
+        exit;
+    }
 }
 
 exit;
