@@ -228,7 +228,9 @@ class rah_plugcompile
 
     protected function formatTextpack()
     {
-        is_readable($this->path) ?: return;
+        if (!is_readable($this->path)) {
+            return;
+        }
 
         if (is_file($this->path)) {
             $this->plugin['textpack'][] = $this->read($this->path);
@@ -269,7 +271,7 @@ class rah_plugcompile
                     continue;
                 }
 
-                $method = 'format_' . $name;
+                $method = 'format' . ucfirst($name);
 
                 if (isset($value->file) && method_exists($this, $method)) {
                     foreach ((array) $value->file as $path) {
@@ -298,7 +300,7 @@ class rah_plugcompile
                 continue;
             }
 
-            $method = 'format_'.$name;
+            $method = 'format' . ucfirst($name);
 
             if (isset($value->attributes()->file) && method_exists($this, $method)) {
                 foreach (explode(',', (string) $value->attributes()->file) as $path) {
@@ -516,7 +518,7 @@ class rah_plugcompile
                 continue;
             }
 
-            $method = 'format_'. $this->pathinfo['filename'];
+            $method = 'format'. ucfirst($this->pathinfo['filename']);
 
             if (method_exists($this, $method)) {
                 $this->$method();
