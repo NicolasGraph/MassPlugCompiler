@@ -126,7 +126,7 @@ class rah_plugcompile
      * @var Textile
      */
 
-    static public $classTextile = null;
+    static public $textileParser = null;
 
     /**     * Stores class instances.
      *
@@ -153,23 +153,32 @@ class rah_plugcompile
             self::$rundir = dirname(__FILE__);
         }
 
-        if ($this->header === null) {
-            if (self::$classTextile === null) {
-                self::$classTextile = false;
+        if (self::$textileParser === null) {
+            self::$textileParser = false;
+            $textileParser = 'Netcarver\Textile\Parser';
 
-                if (!class_exists('Textile') && file_exists(self::$rundir.'/classTextile.php')) {
-                    @include_once self::$rundir.'/classTextile.php';
-                }
-
-                if (!class_exists('Textile') && defined('txpath')) {
-                    @include_once txpath.'/lib/classTextile.php';
-                }
-
-                if (class_exists('Textile')) {
-                    self::$classTextile = new Textile();
-                }
+            if (!class_exists($textileParser) &&
+                file_exists(self::$rundir.'/Netcarver/Textile/Parser.php') &&
+                file_exists(self::$rundir.'/Netcarver/Textile/DataBag.php') &&
+                file_exists(self::$rundir.'/Netcarver/Textile/Tag.php')
+            ) {
+                @include_once self::$rundir.'/Netcarver/Textile/Parser.php';
+                @include_once self::$rundir.'/Netcarver/Textile/DataBag.php';
+                @include_once self::$rundir.'/Netcarver/Textile/Tag.php';
             }
 
+            if (!class_exists($textileParser) && defined('txpath')) {
+                @include_once txpath.'/vendors/Netcarver/Textile/Parser.php';
+                @include_once txpath.'/vendors/Netcarver/Textile/DataBag.php';
+                @include_once txpath.'/vendors/Netcarver/Textile/Tag.php';
+            }
+
+            if (class_exists($textileParser)) {
+                self::$textileParser = new $textileParser();
+            }
+        }
+
+        if ($this->header === null) {
             $this->header = implode("\n", array(
                 '# Name: {name} v{version}',
                 '# {description}',
@@ -339,15 +348,15 @@ class rah_plugcompile
 
     protected function formatHelp()
     {
-        $this->plugin['help'] = $this->read($this->path);
+        $help = $this->read($this->path);
 
         if ($this->pathinfo['extension'] == 'textile' ||
-            preg_match('/h1(\(.*\))?\./', $this->plugin['help'])
+            preg_match('/h1(\(.*\))?\./', $help)
         ) {
-            if (self::$classTextile) {
-                $this->plugin['help'] = self::$classTextile->TextileThis($this->plugin['help']);
+            if (self::$textileParser) {
+                $this->plugin['help'] = self::$textileParser->TextileThis($help);
             } else {
-                $this->plugin['help_raw'] = $this->plugin['help'];
+                $this->plugin['help_raw'] = $help;
                 $this->plugin['allow_html_help'] = 0;
                 $this->plugin['help'] = '';
             }
@@ -513,6 +522,10 @@ class rah_plugcompile
 
                 if ($this->pathinfo['extension'] == 'php') {
                     $this->formatCode();
+                }
+
+                if ($this->pathinfo['extension'] == 'textile') {
+                    $this->formatHelp();
                 }
 
                 continue;
