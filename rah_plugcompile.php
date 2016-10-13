@@ -354,9 +354,9 @@ class rah_plugcompile
             preg_match('/h1(\(.*\))?\./', $help)
         ) {
             if (self::$textileParser) {
-                $this->plugin['help'] = self::$textileParser->TextileThis($help);
+                $this->plugin['help'][] = self::$textileParser->TextileThis($help);
             } else {
-                $this->plugin['help_raw'] = $help;
+                $this->plugin['help_raw'][] = $help;
                 $this->plugin['allow_html_help'] = 0;
                 $this->plugin['help'] = '';
             }
@@ -435,6 +435,7 @@ class rah_plugcompile
         }
 
         $this->plugin['code'] = implode("\n", $this->plugin['code']);
+        $this->plugin['help'] = implode("\n", $this->plugin['help']);
         $this->plugin['textpack'] = implode("\n", $this->plugin['textpack']);
         $this->plugin['md5'] = md5($this->plugin['code']);
 
